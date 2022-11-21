@@ -251,6 +251,7 @@ declare function config:format-zotero-item($item as node()) as map(*) {
     let $key := $item/key/string()
     let $type := $item/itemType/string()
     let $title := $item/title/string()
+    let $shortTitle := $item/shortTitle/string()
     let $date := $item/date/string()
     let $url := $item/url/string()
     let $publisher := $item/publisher/string()
@@ -360,7 +361,8 @@ declare function config:format-zotero-item($item as node()) as map(*) {
             "missing-entries" : $missing-entries,
             "key" : $key,
             "icon" : $icon,
-            "span" : $formatted-item
+            "span" : $formatted-item,
+            "title" : $shortTitle
         }
     return
         $item-map
@@ -611,7 +613,7 @@ declare function config:get-ediarum-index-with-params($project-name as xs:string
     case "letters" return (
         let $ul :=
             element ul {
-                for $x in collection($data-collection)//tei:TEI[.//tei:correspAction]
+                for $x in collection($data-collection||'/Briefe')//tei:TEI[.//tei:correspAction]
                 let $title := normalize-space(string-join($x//tei:titleStmt/tei:title/text()))
                 order by $x//tei:correspAction[@type='sent']/tei:date/(@when|@from|@notBefore)/data(.)
                 return
@@ -632,7 +634,7 @@ declare function config:get-ediarum-index-with-params($project-name as xs:string
     case "comments" return (
         let $ul :=
             element ul {
-                for $x in collection($data-collection)//tei:TEI
+                for $x in collection($data-collection||'/Briefe')//tei:TEI
                 let $fileName := substring-after(base-uri($x), 'data/')
                 order by $fileName
                 return
@@ -970,6 +972,9 @@ declare function config:get-zotero-index($project-name as xs:string, $zotero-ind
                 attribute xml:id { "zotero-"||$zotero-group||"-"||$item-map("key") },
                 element span {
                     normalize-space(string($item-map("span")))
+                },
+                element title {
+                    normalize-space(string($item-map("title")))
                 }
             }
         }
